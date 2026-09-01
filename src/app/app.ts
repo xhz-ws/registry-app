@@ -7,6 +7,11 @@ import {
 } from '@angular/forms';
 import { Records } from './services/records';
 import { FormRecord, Department } from './models/form-record';
+import {
+  arabicOnlyValidator,
+  englishOnlyValidator,
+  futureDateValidator
+} from './validators/form-record.validators';
 
 @Component({
   selector: 'app-root',
@@ -20,19 +25,50 @@ export class App {
 
   records = this.recordsService.getAll();
 
+  editingId: string | null = null;
+  errorMessage = '';
+
   form = this.fb.nonNullable.group({
-    code: ['', [Validators.required, Validators.pattern(/^\d{1,4}$/)]],
+    code: [
+      '',
+      [Validators.required, Validators.pattern(/^\d{1,4}$/)]
+    ],
     arabicName: [
       '',
-      [Validators.required, Validators.pattern(/^[\u0600-\u06FF\s]+$/)]
+      [Validators.required, arabicOnlyValidator()]
     ],
     englishName: [
       '',
-      [Validators.required, Validators.pattern(/^[A-Za-z\s]+$/)]
+      [Validators.required, englishOnlyValidator()]
     ],
-    department: ['', Validators.required],
-    submissionDeadline: ['', Validators.required]
+    department: [
+      '',
+      Validators.required
+    ],
+    submissionDeadline: [
+      '',
+      [Validators.required, futureDateValidator()]
+    ]
   });
+
+  startEdit(record: FormRecord): void {
+    this.editingId = record.id;
+    this.errorMessage = '';
+
+    this.form.setValue({
+      code: record.code,
+      arabicName: record.arabicName,
+      englishName: record.englishName,
+      department: record.department,
+      submissionDeadline: record.submissionDeadline.slice(0, 10)
+    });
+  }
+
+  cancelEdit(): void {
+    this.editingId = null;
+    this.errorMessage = '';
+    this.form.reset();
+  }
 
   submit(): void {
     this.form.markAllAsTouched();
@@ -43,23 +79,21 @@ export class App {
 
     const value = this.form.getRawValue();
 
-    if (new Date(value.submissionDeadline) < new Date()) {
-      this.form.controls.submissionDeadline.setErrors({ past: true });
-      return;
-    }
-
     this.records.subscribe(records => {
-      const codeExists = records.some(
-        record => record.code === value.code
+      const duplicateCode = records.some(
+        record =>
+          record.code === value.code &&
+          record.id !== this.editingId
       );
 
-      if (codeExists) {
+      if (duplicateCode) {
         this.form.controls.code.setErrors({ unique: true });
         return;
       }
 
-      const duplicate = records.some(
+      const duplicateRecord = records.some(
         record =>
+          record.id !== this.editingId &&
           record.code === value.code &&
           record.arabicName === value.arabicName &&
           record.englishName === value.englishName &&
@@ -67,25 +101,39 @@ export class App {
           record.submissionDeadline === value.submissionDeadline
       );
 
-      if (duplicate) {
+      if (duplicateRecord) {
         this.form.setErrors({ duplicate: true });
         return;
       }
 
-      const record: FormRecord = {
-        id: 0,
-        code: value.code,
-        arabicName: value.arabicName,
-        englishName: value.englishName,
-        department: value.department as Department,
-        submissionDeadline: value.submissionDeadline,
-        createdAt: new Date().toISOString()
-      };
+      if (this.editingId !== null) {
+        const existing = records.find(
+          record => record.id === this.editingId
+        );
 
-      this.recordsService.create(record).subscribe(() => {
-        this.records = this.recordsService.getAll();
-        this.form.reset();
-      });
+        if (!existing) {
+          return;
+        }
+
+        const updated: FormRecord = {
+          ...existing,
+          code: value.code,
+          arabicName: value.arabicName,
+          englishName: value.englishName,
+          department: value.department as Department,
+          submissionDeadline: value.submissionDeadline
+        };
+
+        this.recordsService.update(this.editingId, updated).subscribe({
+          next: () => {
+            this.records = this.recordsService.getAll();
+            this.cancelEdit();
+          },
+          error: () => {
+            this.errorMessage = 'Failed to save changes.';
+          }
+        });
+      }
     });
   }
 }

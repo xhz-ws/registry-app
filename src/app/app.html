@@ -1,6 +1,8 @@
 <h1>Registry Records</h1>
 
 <form [formGroup]="form" (ngSubmit)="submit()">
+  <h2>{{ editingId ? 'Edit Record' : 'Add Record' }}</h2>
+
   <input formControlName="code" placeholder="Code" />
 
   @if (form.controls.code.invalid && form.controls.code.touched) {
@@ -14,17 +16,13 @@
   <input formControlName="arabicName" placeholder="Arabic name" />
 
   @if (form.controls.arabicName.invalid && form.controls.arabicName.touched) {
-    <small>
-      Arabic name is required and must contain Arabic characters only.
-    </small>
+    <small>Arabic name must contain Arabic characters only.</small>
   }
 
   <input formControlName="englishName" placeholder="English name" />
 
   @if (form.controls.englishName.invalid && form.controls.englishName.touched) {
-    <small>
-      English name is required and must contain English characters only.
-    </small>
+    <small>English name must contain English characters only.</small>
   }
 
   <select formControlName="department">
@@ -56,9 +54,17 @@
     <small>This record already exists.</small>
   }
 
+  @if (errorMessage) {
+    <p>{{ errorMessage }}</p>
+  }
+
   <button type="submit" [disabled]="form.invalid">
-    Add
+    {{ editingId ? 'Save' : 'Add' }}
   </button>
+
+  @if (editingId) {
+    <button type="button" (click)="cancelEdit()">Cancel</button>
+  }
 </form>
 
 @if (records | async; as data) {
@@ -84,8 +90,13 @@
             <td>{{ record.department }}</td>
             <td>{{ record.submissionDeadline }}</td>
             <td>
-              <button type="button">Edit</button>
-              <button type="button">Delete</button>
+              <button type="button" (click)="startEdit(record)">
+                Edit
+              </button>
+
+              <button type="button">
+                Delete
+              </button>
             </td>
           </tr>
         }

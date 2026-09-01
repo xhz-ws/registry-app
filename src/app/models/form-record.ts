@@ -5,7 +5,7 @@ export type Department =
   | 'Legal';
 
 export interface FormRecord {
-  id: number;
+  id: string;
   code: string;
   arabicName: string;
   englishName: string;

@@ -19,11 +19,11 @@ export class Records {
     return this.http.post<FormRecord>(this.apiUrl, record);
   }
 
-  update(id: number, record: FormRecord): Observable<FormRecord> {
+  update(id: string, record: FormRecord): Observable<FormRecord> {
     return this.http.put<FormRecord>(`${this.apiUrl}/${id}`, record);
   }
 
-  delete(id: number): Observable<void> {
+  delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
