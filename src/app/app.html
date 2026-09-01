@@ -1,6 +1,65 @@
 <h1>Registry Records</h1>
 
-<button type="button">Add</button>
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <input formControlName="code" placeholder="Code" />
+
+  @if (form.controls.code.invalid && form.controls.code.touched) {
+    <small>Code is required and must be 1–4 digits.</small>
+  }
+
+  @if (form.controls.code.hasError('unique')) {
+    <small>Code must be unique.</small>
+  }
+
+  <input formControlName="arabicName" placeholder="Arabic name" />
+
+  @if (form.controls.arabicName.invalid && form.controls.arabicName.touched) {
+    <small>
+      Arabic name is required and must contain Arabic characters only.
+    </small>
+  }
+
+  <input formControlName="englishName" placeholder="English name" />
+
+  @if (form.controls.englishName.invalid && form.controls.englishName.touched) {
+    <small>
+      English name is required and must contain English characters only.
+    </small>
+  }
+
+  <select formControlName="department">
+    <option value="">Select department</option>
+    <option value="HR">HR</option>
+    <option value="Finance">Finance</option>
+    <option value="IT">IT</option>
+    <option value="Legal">Legal</option>
+  </select>
+
+  @if (form.controls.department.invalid && form.controls.department.touched) {
+    <small>Department is required.</small>
+  }
+
+  <input type="date" formControlName="submissionDeadline" />
+
+  @if (
+    form.controls.submissionDeadline.hasError('required') &&
+    form.controls.submissionDeadline.touched
+  ) {
+    <small>Deadline is required.</small>
+  }
+
+  @if (form.controls.submissionDeadline.hasError('past')) {
+    <small>Deadline cannot be in the past.</small>
+  }
+
+  @if (form.hasError('duplicate')) {
+    <small>This record already exists.</small>
+  }
+
+  <button type="submit" [disabled]="form.invalid">
+    Add
+  </button>
+</form>
 
 @if (records | async; as data) {
   @if (data.length > 0) {

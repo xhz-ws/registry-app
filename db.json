@@ -44,6 +44,15 @@
       "department": "HR",
       "submissionDeadline": "2026-12-15T23:59:59Z",
       "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "CwVrRQfzY-w",
+      "code": "1234",
+      "arabicName": "ييي",
+      "englishName": "dd",
+      "department": "Legal",
+      "submissionDeadline": "2026-09-17",
+      "createdAt": "2026-09-01T21:39:24.603Z"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
